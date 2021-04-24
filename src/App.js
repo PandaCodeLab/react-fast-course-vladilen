@@ -20,6 +20,11 @@ function App() {
       completed: false,
       title: "Купить молоко",
     },
+    {
+      id: 4,
+      completed: false,
+      title: "Купить сок",
+    },
   ]);
 
   function toggleTodo(id) {
