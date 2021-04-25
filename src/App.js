@@ -1,26 +1,32 @@
-import React from "react";
-import TodoList from "./Todo/TodoList";
+import React, { useEffect } from "react";
 import Context from "./context";
-import AddTodo from "./Todo/AddTodo";
+import TodoList from "./Todo/TodoList";
+import Modal from "./Modal/Modal";
+import Loader from "./loader";
+
+const AddTodo = React.lazy(
+  () =>
+    new Promise((resolve) => {
+      setTimeout(() => {
+        resolve(import("./Todo/AddTodo"));
+      }, 3000);
+    })
+);
 
 function App() {
-  const [todos, setTodos] = React.useState([
-    {
-      id: 1,
-      completed: false,
-      title: "Купить хлеб",
-    },
-    {
-      id: 2,
-      completed: false,
-      title: "Купить масло",
-    },
-    {
-      id: 3,
-      completed: false,
-      title: "Купить молоко",
-    },
-  ]);
+  const [todos, setTodos] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+
+  useEffect(() => {
+    fetch("https://jsonplaceholder.typicode.com/todos?_limit=5")
+      .then((response) => response.json())
+      .then((todos) => {
+        setTimeout(() => {
+          setTodos(todos);
+          setLoading(false);
+        }, 1500);
+      });
+  }, []);
 
   function toggleTodo(id) {
     setTodos(
@@ -43,13 +49,11 @@ function App() {
 
   function addTodo(title) {
     setTodos(
-      todos.concat[
-        {
-          title,
-          id: Date.now(),
-          completed: false,
-        }
-      ]
+      todos.concat({
+        title,
+        id: Date.now(),
+        completed: false,
+      })
     );
   }
 
@@ -57,11 +61,17 @@ function App() {
     <Context.Provider value={{ removeTodo }}>
       <div className="wrapper">
         <h1>React Tutorial</h1>
-        <AddTodo onCreate={addTodo} />
+        <Modal />
+        <React.Suspense fallback={<Loader />}>
+          <AddTodo onCreate={addTodo} />
+        </React.Suspense>
+
+        {loading && <Loader />}
+
         {todos.length ? (
           <TodoList todos={todos} onToggle={toggleTodo} />
-        ) : (
-          <p>No todos</p>
+        ) : loading ? null : (
+          <p>No Todos!</p>
         )}
       </div>
     </Context.Provider>
